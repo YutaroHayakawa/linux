@@ -2837,7 +2837,6 @@ lwt_xmit_func_proto(enum bpf_func_id func_id)
 static const struct bpf_func_proto *
 vale_bpf_func_proto(enum bpf_func_id func_id)
 {
-  printk("vale_bpf_func_proto\n");
 	return bpf_base_func_proto(func_id);
 }
 
@@ -3050,7 +3049,21 @@ static bool vale_bpf_is_valid_access(int off, int size,
 				enum bpf_access_type type,
 				enum bpf_reg_type *reg_type)
 {
-  printk("vale_bpf_is_valid_access\n");
+	switch (off) {
+	case offsetof(struct vale_bpf_md, pkt):
+		*reg_type = PTR_TO_PACKET;
+		break;
+  /* FIXME hardcoded netmap buf size (default) */
+	case (offsetof(struct vale_bpf_md, pkt) + 2048):
+		*reg_type = PTR_TO_PACKET_END;
+		break;
+	}
+	
+	if (off < 0 || off >= sizeof(struct vale_bpf_md))
+		return false;
+	if (off % size != 0)
+		return false;
+	
 	return true;
 }
 
@@ -3329,15 +3342,6 @@ static u32 xdp_convert_ctx_access(enum bpf_access_type type,
 	return insn - insn_buf;
 }
 
-static u32 vale_bpf_convert_ctx_access(enum bpf_access_type type,
-				  const struct bpf_insn *si,
-				  struct bpf_insn *insn_buf,
-				  struct bpf_prog *prog)
-{
-  printk("vale_bpf_convert_ctx_access\n");
-	return 0;
-}
-
 const struct bpf_verifier_ops sk_filter_prog_ops = {
 	.get_func_proto		= sk_filter_func_proto,
 	.is_valid_access	= sk_filter_is_valid_access,
@@ -3390,7 +3394,6 @@ const struct bpf_verifier_ops cg_sock_prog_ops = {
 const struct bpf_verifier_ops vale_bpf_prog_ops = {
 	.get_func_proto		= vale_bpf_func_proto,
 	.is_valid_access	= vale_bpf_is_valid_access,
-	.convert_ctx_access	= vale_bpf_convert_ctx_access,
 };
 
 int sk_detach_filter(struct sock *sk)
