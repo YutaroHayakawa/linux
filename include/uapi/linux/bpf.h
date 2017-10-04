@@ -115,6 +115,7 @@ enum bpf_prog_type {
 	BPF_PROG_TYPE_LWT_IN,
 	BPF_PROG_TYPE_LWT_OUT,
 	BPF_PROG_TYPE_LWT_XMIT,
+	BPF_PROG_TYPE_VALE_BPF,
 };
 
 enum bpf_attach_type {
@@ -668,6 +669,21 @@ enum xdp_action {
 struct xdp_md {
 	__u32 data;
 	__u32 data_end;
+};
+
+/* User return codes for VALE_BPF prog type.
+ * A valid VALE_BPF program must return one of these defined values or attached
+ * port id. Unknown port id will result in packet drop.
+ */
+enum vale_bpf_action {
+	VALE_BPF_BROADCAST = 254,
+	VALE_BPF_DROP = 255,
+};
+
+/* user accessible metadata for VALE_BPF packet hook */
+struct vale_bpf_md {
+	__u8 *pkt;
+	__u16 pkt_len;
 };
 
 #endif /* _UAPI__LINUX_BPF_H__ */

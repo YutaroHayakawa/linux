@@ -535,6 +535,12 @@ static __always_inline u32 bpf_prog_run_xdp(const struct bpf_prog *prog,
 	return BPF_PROG_RUN(prog, xdp);
 }
 
+static __always_inline u32 bpf_prog_run_vale_bpf(const struct bpf_prog *prog,
+					    struct vale_bpf_md *md)
+{
+	return BPF_PROG_RUN(prog, md);
+}
+
 static inline u32 bpf_prog_insn_size(const struct bpf_prog *prog)
 {
 	return prog->len * sizeof(struct bpf_insn);

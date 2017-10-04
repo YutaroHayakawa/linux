@@ -2834,6 +2834,13 @@ lwt_xmit_func_proto(enum bpf_func_id func_id)
 	}
 }
 
+static const struct bpf_func_proto *
+vale_bpf_func_proto(enum bpf_func_id func_id)
+{
+  printk("vale_bpf_func_proto\n");
+	return bpf_base_func_proto(func_id);
+}
+
 static bool __is_valid_access(int off, int size)
 {
 	if (off < 0 || off >= sizeof(struct __sk_buff))
@@ -3037,6 +3044,14 @@ static bool xdp_is_valid_access(int off, int size,
 	}
 
 	return __is_valid_xdp_access(off, size);
+}
+
+static bool vale_bpf_is_valid_access(int off, int size,
+				enum bpf_access_type type,
+				enum bpf_reg_type *reg_type)
+{
+  printk("vale_bpf_is_valid_access\n");
+	return true;
 }
 
 void bpf_warn_invalid_xdp_action(u32 act)
@@ -3314,6 +3329,15 @@ static u32 xdp_convert_ctx_access(enum bpf_access_type type,
 	return insn - insn_buf;
 }
 
+static u32 vale_bpf_convert_ctx_access(enum bpf_access_type type,
+				  const struct bpf_insn *si,
+				  struct bpf_insn *insn_buf,
+				  struct bpf_prog *prog)
+{
+  printk("vale_bpf_convert_ctx_access\n");
+	return 0;
+}
+
 const struct bpf_verifier_ops sk_filter_prog_ops = {
 	.get_func_proto		= sk_filter_func_proto,
 	.is_valid_access	= sk_filter_is_valid_access,
@@ -3361,6 +3385,12 @@ const struct bpf_verifier_ops cg_sock_prog_ops = {
 	.get_func_proto		= bpf_base_func_proto,
 	.is_valid_access	= sock_filter_is_valid_access,
 	.convert_ctx_access	= sock_filter_convert_ctx_access,
+};
+
+const struct bpf_verifier_ops vale_bpf_prog_ops = {
+	.get_func_proto		= vale_bpf_func_proto,
+	.is_valid_access	= vale_bpf_is_valid_access,
+	.convert_ctx_access	= vale_bpf_convert_ctx_access,
 };
 
 int sk_detach_filter(struct sock *sk)
